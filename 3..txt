@@ -1,0 +1,69 @@
+import RPi.GPIO as GPIO
+import time
+import datetime
+
+# Configura los pines del sensor ultrasónico
+TRIG = 23
+ECHO = 24
+
+# Configura los pines de los LEDs
+LED_RED = 17
+LED_AMBER = 18
+LED_GREEN = 22
+
+# Configura los pines GPIO
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(TRIG, GPIO.OUT)
+GPIO.setup(ECHO, GPIO.IN)
+GPIO.setup(LED_RED, GPIO.OUT)
+GPIO.setup(LED_AMBER, GPIO.OUT)
+GPIO.setup(LED_GREEN, GPIO.OUT)
+
+# Función para medir la distancia
+def medir_distancia():
+    GPIO.output(TRIG, False)
+    time.sleep(0.2)
+    GPIO.output(TRIG, True)
+    time.sleep(0.00001)
+    GPIO.output(TRIG, False)
+
+    while GPIO.input(ECHO) == 0:
+        pulse_start = time.time()
+
+    while GPIO.input(ECHO) == 1:
+        pulse_end = time.time()
+
+    pulse_duration = pulse_end - pulse_start
+    distancia = (pulse_duration * 34300) / 2  # Velocidad del sonido es 343 m/s
+
+    return distancia
+
+try:
+    while True:
+        distancia = medir_distancia()
+        print(f'Distancia: {distancia} cm')
+
+        if distancia < 10:
+            GPIO.output(LED_RED, GPIO.HIGH)
+            GPIO.output(LED_AMBER, GPIO.LOW)
+            GPIO.output(LED_GREEN, GPIO.LOW)
+            mensaje_alerta = "MUY CERCA"
+        elif distancia > 30:
+            GPIO.output(LED_RED, GPIO.LOW)
+            GPIO.output(LED_AMBER, GPIO.LOW)
+            GPIO.output(LED_GREEN, GPIO.HIGH)
+            mensaje_alerta = "EXCELENTE"
+        else:
+            GPIO.output(LED_RED, GPIO.LOW)
+            GPIO.output(LED_AMBER, GPIO.HIGH)
+            GPIO.output(LED_GREEN, GPIO.LOW)
+            mensaje_alerta = "CERCA"
+
+        fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open("mediciones.txt", "a") as archivo:
+            archivo.write(f"{fecha_actual} - Distancia: {distancia} cm - {mensaje_alerta}\n")
+
+        time.sleep(1)  # Puedes ajustar la frecuencia de lectura
+
+except KeyboardInterrupt:
+    GPIO.cleanup()
