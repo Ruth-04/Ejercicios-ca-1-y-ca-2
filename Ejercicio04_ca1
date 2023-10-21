@@ -1,0 +1,67 @@
+Archivo: Ejercicio04ca1.py
+Equipo: 7
+Integrantes del equipo: Integrante #1 
+Integrante #2
+Integrante #3
+Fecha: 20/10/2023
+Descripcion: Escribe un programa donde se lea el uso de memoria ram y la guarde en un archivo *.txt
+
+import psutil
+import RPi.GPIO as GPIO
+import time
+ram_usage = psutil.virtual_memory()available*100/psutil.virtual_memory().total
+
+# Configura los pines GPIO para los LEDs
+LED_PIN_1 = 17
+LED_PIN_2 = 18
+LED_PIN_3 = 27
+LED_PIN_4 = 22
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(LED_PIN_1, GPIO.OUT)
+GPIO.setup(LED_PIN_2, GPIO.OUT)
+GPIO.setup(LED_PIN_3, GPIO.OUT)
+GPIO.setup(LED_PIN_4, GPIO.OUT)
+
+# Función para encender los LEDs según el uso de RAM
+def encender_leds(ram_percent):
+    if ram_percent < 25:
+        GPIO.output(LED_PIN_1, GPIO.HIGH)
+        GPIO.output(LED_PIN_2, GPIO.HIGH)
+        GPIO.output(LED_PIN_3, GPIO.HIGH)
+        GPIO.output(LED_PIN_4, GPIO.LOW)
+    elif ram_percent < 50:
+        GPIO.output(LED_PIN_1, GPIO.HIGH)
+        GPIO.output(LED_PIN_2, GPIO.HIGH)
+        GPIO.output(LED_PIN_3, GPIO.LOW)
+        GPIO.output(LED_PIN_4, GPIO.LOW)
+    elif ram_percent < 75:
+        GPIO.output(LED_PIN_1, GPIO.HIGH)
+        GPIO.output(LED_PIN_2, GPIO.LOW)
+        GPIO.output(LED_PIN_3, GPIO.LOW)
+        GPIO.output(LED_PIN_4, GPIO.LOW)
+    elif ram_percent < 90:
+        GPIO.output(LED_PIN_1, GPIO.LOW)
+        GPIO.output(LED_PIN_2, GPIO.LOW)
+        GPIO.output(LED_PIN_3, GPIO.LOW)
+        GPIO.output(LED_PIN_4, GPIO.LOW)
+    else:
+        GPIO.output(LED_PIN_1, GPIO.LOW)
+        GPIO.output(LED_PIN_2, GPIO.LOW)
+        GPIO.output(LED_PIN_3, GPIO.LOW)
+        GPIO.output(LED_PIN_4, GPIO.LOW)
+
+try:
+    while True:
+        ram_info = psutil.virtual_memory()
+        ram_percent = ram_info.percent
+
+        # Guardar el uso de memoria RAM en un archivo
+        with open("uso_de_memoria.txt", "w") as file:
+            file.write(f"Uso de memoria RAM: {ram_percent}%\n")
+
+        encender_leds(ram_percent)
+        time.sleep(60)  # Actualizar cada 60 segundos
+
+except KeyboardInterrupt:
+GPIO.cleanup()
